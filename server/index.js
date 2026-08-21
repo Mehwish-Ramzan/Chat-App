@@ -19,32 +19,23 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 const databaseURL =
-  process.env.DATABASE_URI ||
-  "mongodb://localhost:27017/chat-app";
+  process.env.DATABASE_URI || "mongodb://localhost:27017/chat-app";
 
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-];
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
 app.use(
   cors({
     origin: allowedOrigins,
 
-    methods: [
-      "GET",
-      "POST",
-      "PUT",
-      "DELETE",
-      "PATCH",
-    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
 
     credentials: true,
 
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-    ],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
@@ -55,43 +46,22 @@ app.use(express.json());
 /*
  * STATIC FILES
  */
-app.use(
-  "/uploads/profiles",
-  express.static("uploads/profiles"),
-);
+app.use("/uploads/profiles", express.static("uploads/profiles"));
 
-app.use(
-  "/uploads/messages",
-  express.static("uploads/messages"),
-);
+app.use("/uploads/messages", express.static("uploads/messages"));
 
 /*
  * API ROUTES
  */
-app.use(
-  "/api/auth",
-  authRoutes,
-);
+app.use("/api/auth", authRoutes);
 
-app.use(
-  "/api/contacts",
-  contactRoutes,
-);
+app.use("/api/contacts", contactRoutes);
 
-app.use(
-  "/api/messages",
-  messageRoutes,
-);
+app.use("/api/messages", messageRoutes);
 
-app.use(
-  "/api/chat-requests",
-  chatRequestRoutes,
-);
+app.use("/api/chat-requests", chatRequestRoutes);
 
-app.use(
-  "/api/channels",
-  channelRoutes,
-);
+app.use("/api/channels", channelRoutes);
 /*
  * DATABASE + HTTP + SOCKET SERVER
  */
@@ -99,27 +69,16 @@ mongoose
   .connect(databaseURL)
 
   .then(() => {
-    console.log(
-      "Connected to Database successfully",
-    );
-
-    const server = app.listen(
-      port,
-      () => {
-        console.log(
-          `Server is running at http://localhost:${port}`,
-        );
-      },
-    );
+    console.log("Connected to Database successfully");
+    const server = app.listen(port, "0.0.0.0", () => {
+      console.log(`Server is running on port ${port}`);
+    });
 
     setupSocket(server);
   })
 
   .catch((error) => {
-    console.error(
-      "Database connection error:",
-      error,
-    );
+    console.error("Database connection error:", error);
 
     process.exit(1);
   });
