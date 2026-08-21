@@ -2,15 +2,35 @@ import { Server as SocketIOServer } from "socket.io";
 
 import Message from "./models/MessagesModel.js";
 import jwt from "jsonwebtoken";
-import { parse } from "cookie";
 import ChatRequest from "./models/ChatRequestModel.js";
 
 import ConversationPreference from "./models/ConversationPreferenceModel.js";
 import Channel from "./models/ChannelModel.js";
 import ChannelMessage from "./models/ChannelMessageModel.js";
 
+
 const makePairKey = (userOne, userTwo) => {
   return [String(userOne), String(userTwo)].sort().join(":");
+};
+
+const getCookieValue = (cookieHeader, cookieName) => {
+  if (!cookieHeader) {
+    return null;
+  }
+
+  const cookies = cookieHeader.split(";");
+
+  for (const cookieItem of cookies) {
+    const trimmedCookie = cookieItem.trim();
+
+    if (trimmedCookie.startsWith(`${cookieName}=`)) {
+      return decodeURIComponent(
+        trimmedCookie.slice(cookieName.length + 1),
+      );
+    }
+  }
+
+  return null;
 };
 
 const setupSocket = (server) => {
@@ -41,9 +61,7 @@ const setupSocket = (server) => {
    */
   io.use((socket, next) => {
     try {
-      const cookies = parse(
-        socket.request.headers.cookie || "",
-      );
+     const cookies = cookie.parse(socket.request.headers.cookie || "");
 
       const token = cookies.jwt;
 
